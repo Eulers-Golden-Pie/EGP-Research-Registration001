@@ -1,1 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Participant registration portal for the EGP Educational Intervention Research Study."
+  >
+
+  <title>EGP Research Study | Participant Registration</title>
+
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img
+          src="assets/logo.png"
+          alt="Euler's Golden Pie logo"
+          class="brand-logo"
+          onerror="this.style.display='none'"
+        >
+
+        <div>
+          <p class="eyebrow">Educational Intervention Research Study</p>
+          <h1>EGP Participant Registration</h1>
+        </div>
+      </div>
+
+      <div class="study-badge">
+        Study ID: EGP-2026-001
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro-card">
+      <div>
+        <p class="eyebrow">Euler's Golden Pie</p>
+        <h2>Learning and Memory Research Study</h2>
+
+        <p>
+          This study evaluates an educational intervention using
+          Euler's Golden Pie (EGP). Participation involves a pre-assessment,
+          an interactive learning activity, a post-assessment, and a short
+          feedback questionnaire.
+        </p>
+      </div>
+
+      <div class="study-facts">
+        <div class="fact">
+          <span class="fact-label">Duration</span>
+          <strong>45–60 minutes</strong>
+        </div>
+
+        <div class="fact">
+          <span class="fact-label">Participants</span>
+          <strong>Students and adults</strong>
+        </div>
+
+        <div class="fact">
+          <span class="fact-label">Participation</span>
+          <strong>Voluntary</strong>
+        </div>
+      </div>
+    </section>
+
+    <noscript>
+      <div class="message message-error">
+        JavaScript must be enabled to use this registration form.
+      </div>
+    </noscript>
+
+    <section class="form-card">
+      <div class="progress-wrapper" aria-label="Registration progress">
+        <div class="progress-header">
+          <span id="progressText">Step 1 of 5</span>
+          <span id="progressPercent">20%</span>
+        </div>
+
+        <div class="progress-track">
+          <div
+            id="progressBar"
+            class="progress-bar"
+            style="width: 20%;"
+          ></div>
+        </div>
+      </div>
+
+      <div
+        id="formMessage"
+        class="message hidden"
+        role="alert"
+        aria-live="polite"
+      ></div>
+
+      <form id="registrationForm" novalidate>
+        <!-- Anti-spam honeypot. Humans should never fill this. -->
+        <div class="honeypot" aria-hidden="true">
+          <label for="website">Leave this field empty</label>
+          <input
+            type="text"
+            id="website"
+            name="website"
+            tabindex="-1"
+            autocomplete="off"
+          >
+        </div>
+
+        <!-- STEP 1 -->
+        <section class="form-step active" data-step="1">
+          <div class="section-heading">
+            <p class="step-label">Step 1</p>
+            <h2>Who is being registered?</h2>
+
+            <p>
+              Choose the option that describes the participant on the date
+              of the study session.
+            </p>
+          </div>
+
+          <fieldset class="choice-grid">
+            <legend class="sr-only">Participant type</legend>
+
+            <label class="choice-card">
+              <input
+                type="radio"
+                name="participantType"
+                value="adult"
+                required
+              >
+
+              <span class="choice-content">
+                <span class="choice-icon" aria-hidden="true">18+</span>
+
+                <span>
+                  <strong>Adult participant</strong>
+                  <small>Age 18 or older</small>
+                </span>
+              </span>
+            </label>
+
+            <label class="choice-card">
+              <input
+                type="radio"
+                name="participantType"
+                value="student"
+                required
+              >
+
+              <span class="choice-content">
+                <span class="choice-icon" aria-hidden="true">U18</span>
+
+                <span>
+                  <strong>Student participant</strong>
+                  <small>Under 18 years old</small>
+                </span>
+              </span>
+            </label>
+          </fieldset>
+
+          <p
+            id="participantTypeError"
+            class="field-error hidden"
+          >
+            Select a participant type to continue.
+          </p>
+
+          <div class="button-row button-row-end">
+            <button
+              type="button"
+              class="button button-primary next-button"
+            >
+              Continue
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="form-step" data-step="2">
+          <div class="section-heading">
+            <p class="step-label">Step 2</p>
+            <h2 id="detailsHeading">Participant details</h2>
+
+            <p id="detailsDescription">
+              Enter the information requested below.
+            </p>
+          </div>
+
+          <!-- ADULT DETAILS -->
+          <div id="adultFields" class="conditional-section hidden">
+            <h3>Adult participant information</h3>
+
+            <div class="field-grid">
+              <div class="field-group">
+                <label for="adultFirstName">
+                  First name <span aria-hidden="true">*</span>
+                </label>
+
+                <input
+                  type="text"
+                  id="adultFirstName"
+                  name="adultFirstName"
+                  maxlength="50"
+                  autocomplete="given-name"
+                  data-required-for="adult"
+                >
+              </div>
+
+              <div class="field-group">
+                <label for="adultLastName">
+                  Last name <span aria-hidden="true">*</span>
+                </label>
+
+                <input
+                  type="text"
+                  id="adultLastName"
+                  name="adultLastName"
+                  maxlength="50"
+                  autocomplete="family-name"
+                  data-required-for="adult"
+                >
+              </div>
+
+              <div class="field-group">
+                <label for="adultEmail">
+                  Email address <span aria-hidden="true">*</span>
+                </label>
+
+                <input
+                  type="email"
+                  id="adultEmail"
+                  name="adultEmail"
+                  maxlength="120"
+                  autocomplete="email"
+                  data-required-for="adult"
+                >
+              </div>
+
+              <div class="field-group">
+                <label for="adultPhone">
+                  Phone number <span aria-hidden="true">*</span>
+                </label>
+
+                <input
+                  type="tel"
+                  id="adultPhone"
+                  name="adultPhone"
+                  maxlength="25"
+                  autocomplete="tel"
+                  inputmode="tel"
+                  data-required-for="adult"
+                >
+              </div>
+
+              <div class="field-group">
+                <label for="adultAgeRange">
+                  Age range <span aria-hidden="true">*</span>
+                </label>
+
+                <select
+                  id="adultAgeRange"
+                  name="adultAgeRange"
+                  data-required-for="adult"
+                >
+                  <option value="">Select an age range</option>
+                  <option value="18-24">18–24</option>
+                  <option value="25-34">25–34</option>
+                  <option value="35-44">35–44</option>
+                  <option value="45-54">45–54</option>
+                  <option value="55-64">55–64</option>
+                  <option value="65+">65 or older</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- STUDENT/PARENT DETAILS -->
+          <div id="studentFields" class="conditional-section hidden">
+            <section class="subsection">
+              <h3>Parent or legal guardian information</h3>
+
+              <p class="section-note">
+                A parent or legal guardian must complete this registration
+                for a participant under 18.
+              </p>
+
+              <div class="field-grid">
+                <div class="field-group">
+                  <label for="parentFirstName">
+                    Parent/guardian first name
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="parentFirstName"
+                    name="parentFirstName"
+                    maxlength="50"
+                    autocomplete="given-name"
+                    data-required-for="student"
+                  >
+                </div>
+
+                <div class="field-group">
+                  <label for="parentLastName">
+                    Parent/guardian last name
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="parentLastName"
+                    name="parentLastName"
+                    maxlength="50"
+                    autocomplete="family-name"
+                    data-required-for="student"
+                  >
+                </div>
+
+                <div class="field-group">
+                  <label for="parentRelationship">
+                    Relationship to student
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <select
+                    id="parentRelationship"
+                    name="parentRelationship"
+                    data-required-for="student"
+                  >
+                    <option value="">Select a relationship</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Legal guardian">Legal guardian</option>
+                    <option value="Other authorized guardian">
+                      Other authorized guardian
+                    </option>
+                  </select>
+                </div>
+
+                <div class="field-group">
+                  <label for="parentEmail">
+                    Parent/guardian email
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="email"
+                    id="parentEmail"
+                    name="parentEmail"
+                    maxlength="120"
+                    autocomplete="email"
+                    data-required-for="student"
+                  >
+                </div>
+
+                <div class="field-group">
+                  <label for="parentPhone">
+                    Parent/guardian phone
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="tel"
+                    id="parentPhone"
+                    name="parentPhone"
+                    maxlength="25"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    data-required-for="student"
+                  >
+                </div>
+              </div>
+            </section>
+
+            <section class="subsection">
+              <h3>Student information</h3>
+
+              <div class="field-grid">
+                <div class="field-group">
+                  <label for="studentFirstName">
+                    Student first name
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="studentFirstName"
+                    name="studentFirstName"
+                    maxlength="50"
+                    autocomplete="off"
+                    data-required-for="student"
+                  >
+                </div>
+
+                <div class="field-group">
+                  <label for="studentLastName">
+                    Student last name
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="studentLastName"
+                    name="studentLastName"
+                    maxlength="50"
+                    autocomplete="off"
+                    data-required-for="student"
+                  >
+                </div>
+
+                <div class="field-group">
+                  <label for="studentAge">
+                    Student age
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <input
+                    type="number"
+                    id="studentAge"
+                    name="studentAge"
+                    min="6"
+                    max="17"
+                    inputmode="numeric"
+                    data-required-for="student"
+                  >
+                </div>
+
+                <div class="field-group">
+                  <label for="gradeLevel">
+                    Grade level
+                    <span aria-hidden="true">*</span>
+                  </label>
+
+                  <select
+                    id="gradeLevel"
+                    name="gradeLevel"
+                    data-required-for="student"
+                  >
+                    <option value="">Select a grade</option>
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div class="field-group field-span">
+                  <label for="schoolName">
+                    School name
+                    <span class="optional-label">(optional)</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="schoolName"
+                    name="schoolName"
+                    maxlength="100"
+                    autocomplete="organization"
+                  >
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="subsection">
+            <h3>Session information</h3>
+
+            <div class="field-grid">
+              <div class="field-group">
+                <label for="preferredDate">
+                  Preferred session date
+                  <span aria-hidden="true">*</span>
+                </label>
+
+                <input
+                  type="date"
+                  id="preferredDate"
+                  name="preferredDate"
+                  required
+                >
+              </div>
+
+              <div class="field-group">
+                <label for="preferredTime">
+                  Preferred session time
+                  <span aria-hidden="true">*</span>
+                </label>
+
+                <select
+                  id="preferredTime"
+                  name="preferredTime"
+                  required
+                >
+                  <option value="">Select a time</option>
+                  <option value="Morning">Morning</option>
+                  <option value="Afternoon">Afternoon</option>
+                  <option value="Evening">Evening</option>
+                </select>
+              </div>
+
+              <div class="field-group field-span">
+                <label for="accessibilityNotes">
+                  Accessibility needs or accommodations
+                  <span class="optional-label">(optional)</span>
+                </label>
+
+                <textarea
+                  id="accessibilityNotes"
+                  name="accessibilityNotes"
+                  rows="4"
+                  maxlength="500"
+                  placeholder="Share only information needed to help make the session accessible."
+                ></textarea>
+
+                <small class="helper-text">
+                  Do not include medical details that are unnecessary for
+                  arranging participation.
+                </small>
+              </div>
+            </div>
+          </section>
+
+          <div class="button-row">
+            <button
+              type="button"
+              class="button button-secondary back-button"
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              class="button button-primary next-button"
+            >
+              Continue
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section class="form-step" data-step="3">
+          <div class="section-heading">
+            <p class="step-label">Step 3</p>
+            <h2>Participant Information Sheet</h2>
+
+            <p>
+              Read the Participant Information Sheet before providing
+              consent.
+            </p>
+          </div>
+
+          <div class="document-card">
+            <div class="document-icon" aria-hidden="true">PDF</div>
+
+            <div>
+              <h3>Participant Information Sheet — Version 1.0</h3>
+
+              <p>
+                This document explains the study purpose, procedures,
+                possible risks and benefits, privacy practices, and your
+                right to withdraw.
+              </p>
+
+              <a
+                class="button button-outline"
+                href="docs/EGP_Participant_Information_Sheet_v1.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View Participant Information Sheet
+              </a>
+            </div>
+          </div>
+
+          <label class="checkbox-row required-consent">
+            <input
+              type="checkbox"
+              id="pisRead"
+              name="pisRead"
+              value="Yes"
+              required
+            >
+
+            <span>
+              I confirm that I have read or had the opportunity to read
+              the Participant Information Sheet.
+            </span>
+          </label>
+
+          <div class="button-row">
+            <button
+              type="button"
+              class="button button-secondary back-button"
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              class="button button-primary next-button"
+            >
+              Continue
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 4 -->
+        <section class="form-step" data-step="4">
+          <div class="section-heading">
+            <p class="step-label">Step 4</p>
+            <h2>Consent and permissions</h2>
+
+            <p>
+              Required research consent is separate from optional
+              photography and video permissions.
+            </p>
+          </div>
+
+          <!-- ADULT CONSENT -->
+          <div id="adultConsent" class="conditional-section hidden">
+            <h3>Adult participant consent</h3>
+
+            <div class="consent-list">
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="adultVoluntaryConsent"
+                  name="adultVoluntaryConsent"
+                  value="Yes"
+                  data-required-for="adult"
+                >
+
+                <span>
+                  I understand that participation is voluntary.
+                </span>
+              </label>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="adultWithdrawalConsent"
+                  name="adultWithdrawalConsent"
+                  value="Yes"
+                  data-required-for="adult"
+                >
+
+                <span>
+                  I understand that I may stop participating at any time
+                  without penalty.
+                </span>
+              </label>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="adultParticipationConsent"
+                  name="adultParticipationConsent"
+                  value="Yes"
+                  data-required-for="adult"
+                >
+
+                <span>
+                  I freely consent to participate in this research study.
+                </span>
+              </label>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="adultAccuracyConfirmation"
+                  name="adultAccuracyConfirmation"
+                  value="Yes"
+                  data-required-for="adult"
+                >
+
+                <span>
+                  I confirm that the information provided in this form is
+                  accurate to the best of my knowledge.
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- PARENT CONSENT -->
+          <div id="studentConsent" class="conditional-section hidden">
+            <h3>Parent or legal guardian permission</h3>
+
+            <div class="consent-list">
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="guardianAuthority"
+                  name="guardianAuthority"
+                  value="Yes"
+                  data-required-for="student"
+                >
+
+                <span>
+                  I confirm that I am the student's parent or legal
+                  guardian and am authorized to provide permission.
+                </span>
+              </label>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="parentUnderstandsStudy"
+                  name="parentUnderstandsStudy"
+                  value="Yes"
+                  data-required-for="student"
+                >
+
+                <span>
+                  I understand what the student will be asked to do.
+                </span>
+              </label>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="parentVoluntaryConsent"
+                  name="parentVoluntaryConsent"
+                  value="Yes"
+                  data-required-for="student"
+                >
+
+                <span>
+                  I understand that the student's participation is
+                  voluntary and that the student may stop at any time.
+                </span>
+              </label>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="parentParticipationConsent"
+                  name="parentParticipationConsent"
+                  value="Yes"
+                  data-required-for="student"
+                >
+
+                <span>
+                  I give permission for the student named in this form
+                  to participate in the study.
+                </span>
+              </label>
+            </div>
+
+            <div class="assent-box">
+              <h3>Student agreement</h3>
+
+              <p>
+                I understand that I am being invited to take part in a
+                learning and memory activity. I know that I do not have
+                to participate and that I may stop at any time.
+              </p>
+
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  id="studentAssent"
+                  name="studentAssent"
+                  value="Yes"
+                  data-required-for="student"
+                >
+
+                <span>
+                  I agree to participate.
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <section class="subsection optional-permissions">
+            <h3>Optional media permissions</h3>
+
+            <p class="section-note">
+              Saying no to either option will not affect eligibility or
+              participation.
+            </p>
+
+            <label class="checkbox-row">
+              <input
+                type="checkbox"
+                id="photoPermission"
+                name="photoPermission"
+                value="Yes"
+              >
+
+              <span id="photoPermissionText">
+                I agree to be photographed during the study.
+              </span>
+            </label>
+
+            <label class="checkbox-row">
+              <input
+                type="checkbox"
+                id="videoPermission"
+                name="videoPermission"
+                value="Yes"
+              >
+
+              <span id="videoPermissionText">
+                I agree to be video recorded during the study.
+              </span>
+            </label>
+          </section>
+
+          <div class="button-row">
+            <button
+              type="button"
+              class="button button-secondary back-button"
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              class="button button-primary next-button"
+            >
+              Review registration
+            </button>
+          </div>
+        </section>
+
+        <!-- STEP 5 -->
+        <section class="form-step" data-step="5">
+          <div class="section-heading">
+            <p class="step-label">Step 5</p>
+            <h2>Review and submit</h2>
+
+            <p>
+              Review the summary below before submitting the registration.
+            </p>
+          </div>
+
+          <div id="reviewSummary" class="review-summary"></div>
+
+          <label class="checkbox-row final-confirmation">
+            <input
+              type="checkbox"
+              id="finalConfirmation"
+              name="finalConfirmation"
+              value="Yes"
+              required
+            >
+
+            <span>
+              I confirm that I have reviewed this registration and wish
+              to submit it.
+            </span>
+          </label>
+
+          <div class="privacy-note">
+            By submitting, you acknowledge that the information will be
+            transmitted to the researcher and stored in a private Google
+            Sheet for study administration and research purposes.
+
+            <a href="pages/privacy.html" target="_blank" rel="noopener">
+              Read the privacy notice
+            </a>.
+          </div>
+
+          <div class="button-row">
+            <button
+              type="button"
+              class="button button-secondary back-button"
+            >
+              Back
+            </button>
+
+            <button
+              type="submit"
+              id="submitButton"
+              class="button button-primary"
+            >
+              <span id="submitButtonText">Submit registration</span>
+              <span
+                id="submitSpinner"
+                class="spinner hidden"
+                aria-hidden="true"
+              ></span>
+            </button>
+          </div>
+        </section>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      EGP Educational Intervention Research Study |
+      Study ID EGP-2026-001 | PIS Version 1.0
+    </p>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
