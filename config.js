@@ -8,11 +8,7 @@
 
 window.APP_CONFIG = Object.freeze({
   appsScriptUrl:
-    "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE",
+    "https://script.google.com/macros/s/AKfycbwb_IkmwsjmN6z_B6P0cquUxLQeMc4S5zrh_Ew7Jzx07olM__-OQ4SkJBUOaY66RVFS/exec",
 
   successPageUrl: "pages/success.html",
-
-  studyId: "EGP-2026-001",
-
-  formVersion: "1.0"
 });
