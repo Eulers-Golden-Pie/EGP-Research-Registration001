@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Registration Complete | EGP Research Study</title>
+
+  <link rel="stylesheet" href="../styles.css">
+
+  <style>
+    .success-shell {
+      width: min(680px, calc(100% - 32px));
+      margin: 70px auto;
+    }
+
+    .success-card {
+      padding: clamp(28px, 6vw, 52px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-large);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto 20px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      background: var(--success);
+      font-size: 2rem;
+      font-weight: 900;
+    }
+
+    .participant-id {
+      margin: 24px 0;
+      padding: 16px;
+      border-radius: var(--radius-medium);
+      background: var(--primary-soft);
+    }
+
+    .participant-id span,
+    .participant-id strong {
+      display: block;
+    }
+
+    .participant-id span {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .participant-id strong {
+      margin-top: 4px;
+      color: var(--primary-dark);
+      font-size: 1.4rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="success-shell">
+    <section class="success-card">
+      <div class="success-icon" aria-hidden="true">✓</div>
+
+      <p class="eyebrow">Registration received</p>
+      <h1>Thank you for registering.</h1>
+
+      <p>
+        Your information was submitted successfully. Please retain your
+        Participant ID for study-related communication.
+      </p>
+
+      <div class="participant-id">
+        <span>Participant ID</span>
+        <strong id="participantId">Loading…</strong>
+      </div>
+
+      <p>
+        Session details and any additional instructions will be provided
+        using the contact information entered during registration.
+      </p>
+
+      <a class="button button-primary" href="../index.html">
+        Return to study page
+      </a>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    const storedResult = JSON.parse(
+      sessionStorage.getItem("egpRegistrationResult") || "{}"
+    );
+
+    const participantId =
+      params.get("participantId") ||
+      storedResult.participantId ||
+      "Not available";
+
+    document.getElementById("participantId").textContent =
+      participantId;
+  </script>
+</body>
+</html>
