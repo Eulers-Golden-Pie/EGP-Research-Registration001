@@ -13,7 +13,7 @@
     content="noindex"
   >
 
-  <title>Registration Received | EGP</title>
+  <title>Registration Submitted | EGP</title>
 
   <link
     rel="stylesheet"
@@ -35,7 +35,7 @@
       background:
         linear-gradient(
           145deg,
-          rgba(84, 211, 155, 0.04),
+          rgba(84, 211, 155, 0.045),
           transparent 42%
         ),
         var(--surface);
@@ -51,7 +51,9 @@
       display: grid;
       place-items: center;
 
-      border: 1px solid rgba(84, 211, 155, 0.42);
+      border: 1px solid
+        rgba(84, 211, 155, 0.42);
+
       border-radius: 50%;
 
       color: var(--success);
@@ -64,7 +66,9 @@
     .success-card h1 {
       margin: 6px 0 13px;
 
-      font-size: clamp(2rem, 6vw, 3rem);
+      font-size:
+        clamp(2rem, 6vw, 3rem);
+
       line-height: 1.08;
     }
 
@@ -74,7 +78,7 @@
 
     .confirmation-details {
       margin: 28px 0;
-      padding: 20px;
+      padding: 21px;
 
       border: 1px solid var(--border);
       border-radius: var(--radius-medium);
@@ -94,44 +98,36 @@
       color: var(--text-muted);
     }
 
-    .reference-card {
+    .confirmation-details li {
+      margin-bottom: 10px;
+    }
+
+    .confirmation-details li:last-child {
+      margin-bottom: 0;
+    }
+
+    .email-note {
       margin: 22px 0;
       padding: 17px;
 
-      border: 1px solid rgba(110, 168, 255, 0.28);
+      border: 1px solid
+        rgba(110, 168, 255, 0.28);
+
       border-radius: var(--radius-medium);
 
       background: var(--primary-soft);
     }
 
-    .reference-card span,
-    .reference-card strong {
+    .email-note strong {
       display: block;
-    }
-
-    .reference-card span {
-      color: var(--text-faint);
-
-      font-size: 0.76rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .reference-card strong {
-      margin-top: 4px;
+      margin-bottom: 5px;
 
       color: var(--primary-bright);
-      font-size: 1.25rem;
     }
 
-    .error-card {
-      border-color: var(--danger-border);
-      background: var(--danger-soft);
-    }
-
-    .error-card strong {
-      color: #ff9494;
+    .email-note p {
+      margin: 0;
+      color: var(--text-muted);
     }
   </style>
 </head>
@@ -140,7 +136,6 @@
   <main class="success-shell">
     <section class="success-card">
       <div
-        id="statusIcon"
         class="success-icon"
         aria-hidden="true"
       >
@@ -151,34 +146,35 @@
         Euler’s Golden Pie
       </p>
 
-      <h1 id="pageTitle">
-        Registration received
+      <h1>
+        Registration submitted
       </h1>
 
-      <p id="pageMessage">
-        Thank you. Your family registration has been recorded.
+      <p>
+        Thank you. Your family registration has been sent for processing.
       </p>
 
-      <div
-        id="referenceCard"
-        class="reference-card"
-      >
-        <span>Registration reference</span>
-        <strong id="registrationId">
-          Loading…
+      <div class="email-note">
+        <strong>
+          Check your email
         </strong>
+
+        <p>
+          A confirmation email should arrive at the parent or guardian
+          email address entered during registration. Please also check
+          the spam or promotions folder.
+        </p>
       </div>
 
-      <div
-        id="successDetails"
-        class="confirmation-details"
-      >
-        <h2>What happens next?</h2>
+      <div class="confirmation-details">
+        <h2>
+          What happens next?
+        </h2>
 
         <ul>
           <li>
-            A confirmation email should arrive at the parent or guardian
-            email address entered during registration.
+            The registration information will be recorded in the
+            participant registration system.
           </li>
 
           <li>
@@ -189,6 +185,11 @@
           <li>
             Final timing, location details, reminders, and instructions
             will be shared before the event.
+          </li>
+
+          <li>
+            The session is expected to last approximately 45 minutes to
+            1 hour.
           </li>
         </ul>
       </div>
@@ -201,87 +202,5 @@
       </a>
     </section>
   </main>
-
-  <script>
-    const params =
-      new URLSearchParams(window.location.search);
-
-    const status =
-      params.get("status") || "success";
-
-    const registrationId =
-      params.get("registration") || "Not available";
-
-    const emailStatus =
-      params.get("email") || "unknown";
-
-    const pageTitle =
-      document.getElementById("pageTitle");
-
-    const pageMessage =
-      document.getElementById("pageMessage");
-
-    const statusIcon =
-      document.getElementById("statusIcon");
-
-    const referenceCard =
-      document.getElementById("referenceCard");
-
-    const successDetails =
-      document.getElementById("successDetails");
-
-    document.getElementById(
-      "registrationId"
-    ).textContent = registrationId;
-
-    if (status !== "success") {
-      pageTitle.textContent =
-        "Registration could not be completed";
-
-      pageMessage.textContent =
-        "The registration was not saved. Please return to the form and try again.";
-
-      statusIcon.textContent = "!";
-
-      statusIcon.style.color =
-        "var(--danger)";
-
-      statusIcon.style.borderColor =
-        "var(--danger-border)";
-
-      statusIcon.style.background =
-        "var(--danger-soft)";
-
-      referenceCard.classList.add(
-        "error-card"
-      );
-
-      referenceCard.innerHTML =
-        "<strong>No registration was recorded.</strong>";
-
-      successDetails.innerHTML = `
-        <h2>What should you do?</h2>
-        <p>
-          Return to the registration form and try again. If the problem
-          continues, contact the event organizer.
-        </p>
-      `;
-    } else if (emailStatus === "failed") {
-      successDetails.insertAdjacentHTML(
-        "beforeend",
-        `
-          <p class="privacy-warning">
-            Your registration was saved, but the confirmation email
-            could not be sent. Please retain the registration reference
-            shown above.
-          </p>
-        `
-      );
-    }
-
-    localStorage.removeItem(
-      "egpFamilySubmissionToken"
-    );
-  </script>
 </body>
 </html>
