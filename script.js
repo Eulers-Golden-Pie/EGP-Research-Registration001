@@ -2,89 +2,37 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("registrationForm");
-  const steps = Array.from(document.querySelectorAll(".form-step"));
+  const childrenContainer =
+    document.getElementById("childrenContainer");
 
-  const nextButtons = document.querySelectorAll(".next-button");
-  const backButtons = document.querySelectorAll(".back-button");
+  const childTemplate =
+    document.getElementById("childTemplate");
 
-  const progressText = document.getElementById("progressText");
-  const progressPercent = document.getElementById("progressPercent");
-  const progressBar = document.getElementById("progressBar");
+  const addChildButton =
+    document.getElementById("addChildButton");
 
-  const formMessage = document.getElementById("formMessage");
+  const payloadInput =
+    document.getElementById("payload");
 
-  const adultFields = document.getElementById("adultFields");
-  const studentFields = document.getElementById("studentFields");
-  const adultConsent = document.getElementById("adultConsent");
-  const studentConsent = document.getElementById("studentConsent");
+  const formMessage =
+    document.getElementById("formMessage");
 
-  const detailsHeading = document.getElementById("detailsHeading");
-  const detailsDescription = document.getElementById(
-    "detailsDescription"
-  );
+  const submitButton =
+    document.getElementById("submitButton");
 
-  const photoPermissionText = document.getElementById(
-    "photoPermissionText"
-  );
+  const submitButtonText =
+    document.getElementById("submitButtonText");
 
-  const videoPermissionText = document.getElementById(
-    "videoPermissionText"
-  );
+  const submitSpinner =
+    document.getElementById("submitSpinner");
 
-  const reviewSummary = document.getElementById("reviewSummary");
-
-  const submitButton = document.getElementById("submitButton");
-  const submitButtonText = document.getElementById(
-    "submitButtonText"
-  );
-
-  const submitSpinner = document.getElementById("submitSpinner");
-
-  let currentStep = 1;
+  let childCount = 0;
   let isSubmitting = false;
 
-  setMinimumDate();
-  updateProgress();
+  configureFormEndpoint();
+  addChild();
 
-  nextButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      clearMessage();
-
-      if (!validateStep(currentStep)) {
-        scrollToFirstInvalid();
-        return;
-      }
-
-      if (currentStep === 1) {
-        updateParticipantBranch();
-      }
-
-      if (currentStep === 4) {
-        buildReviewSummary();
-      }
-
-      goToStep(currentStep + 1);
-    });
-  });
-
-  backButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      clearMessage();
-      goToStep(currentStep - 1);
-    });
-  });
-
-  document
-    .querySelectorAll('input[name="participantType"]')
-    .forEach((radio) => {
-      radio.addEventListener("change", () => {
-        document
-          .getElementById("participantTypeError")
-          .classList.add("hidden");
-
-        updateParticipantBranch();
-      });
-    });
+  addChildButton.addEventListener("click", addChild);
 
   form.addEventListener("input", (event) => {
     clearInvalidState(event.target);
@@ -96,175 +44,244 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", handleSubmit);
 
-  function getParticipantType() {
-    return (
-      form.querySelector(
-        'input[name="participantType"]:checked'
-      )?.value || ""
-    );
-  }
+  function configureFormEndpoint() {
+    const endpoint = window.APP_CONFIG?.appsScriptUrl;
 
-  function updateParticipantBranch() {
-    const participantType = getParticipantType();
-    const isAdult = participantType === "adult";
-    const isStudent = participantType === "student";
+    if (
+      !endpoint ||
+      !endpoint.startsWith("https://script.google.com/macros/s/") ||
+      !endpoint.endsWith("/exec")
+    ) {
+      showMessage(
+        "The registration backend has not been configured correctly.",
+        "error"
+      );
 
-    adultFields.classList.toggle("hidden", !isAdult);
-    adultConsent.classList.toggle("hidden", !isAdult);
-
-    studentFields.classList.toggle("hidden", !isStudent);
-    studentConsent.classList.toggle("hidden", !isStudent);
-
-    toggleBranchRequirements("adult", isAdult);
-    toggleBranchRequirements("student", isStudent);
-
-    if (isAdult) {
-      detailsHeading.textContent = "Adult participant details";
-
-      detailsDescription.textContent =
-        "Enter the adult participant's contact and session information.";
-
-      photoPermissionText.textContent =
-        "I agree to be photographed during the study.";
-
-      videoPermissionText.textContent =
-        "I agree to be video recorded during the study.";
-    }
-
-    if (isStudent) {
-      detailsHeading.textContent =
-        "Parent and student details";
-
-      detailsDescription.textContent =
-        "A parent or legal guardian must complete this registration.";
-
-      photoPermissionText.textContent =
-        "I give permission for the student to be photographed during the study.";
-
-      videoPermissionText.textContent =
-        "I give permission for the student to be video recorded during the study.";
-    }
-  }
-
-  function toggleBranchRequirements(branch, enabled) {
-    document
-      .querySelectorAll(`[data-required-for="${branch}"]`)
-      .forEach((field) => {
-        field.required = enabled;
-        field.disabled = !enabled;
-
-        if (!enabled) {
-          clearInvalidState(field);
-        }
-      });
-  }
-
-  function goToStep(stepNumber) {
-    if (stepNumber < 1 || stepNumber > steps.length) {
+      submitButton.disabled = true;
       return;
     }
 
-    currentStep = stepNumber;
+    /*
+      Traditional browser form submission avoids the cross-origin
+      response-reading problem that can occur with fetch() and Apps Script.
+    */
+    form.action = endpoint;
+  }
 
-    steps.forEach((step) => {
-      step.classList.toggle(
-        "active",
-        Number(step.dataset.step) === currentStep
+  function addChild() {
+    const fragment =
+      childTemplate.content.cloneNode(true);
+
+    const childCard =
+      fragment.querySelector(".child-card");
+
+    childCount += 1;
+
+    childCard.dataset.childKey =
+      createUniqueKey();
+
+    childrenContainer.appendChild(fragment);
+
+    renumberChildren();
+    updateRemoveButtons();
+
+    const newCard =
+      childrenContainer.lastElementChild;
+
+    if (childCount > 1) {
+      newCard.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      newCard
+        .querySelector('[data-child-field="firstName"]')
+        ?.focus();
+    }
+  }
+
+  function removeChild(childCard) {
+    const cards =
+      childrenContainer.querySelectorAll(".child-card");
+
+    if (cards.length <= 1) {
+      showMessage(
+        "At least one participating child must be included.",
+        "error"
+      );
+
+      return;
+    }
+
+    childCard.remove();
+    childCount = childrenContainer
+      .querySelectorAll(".child-card").length;
+
+    renumberChildren();
+    updateRemoveButtons();
+    clearMessage();
+  }
+
+  function renumberChildren() {
+    const cards =
+      childrenContainer.querySelectorAll(".child-card");
+
+    cards.forEach((card, index) => {
+      const childNumber = index + 1;
+
+      card.querySelector(".child-title").textContent =
+        `Child ${childNumber}`;
+
+      card
+        .querySelectorAll("[data-child-field]")
+        .forEach((field) => {
+          const fieldName =
+            field.dataset.childField;
+
+          field.id =
+            `child-${childNumber}-${fieldName}`;
+
+          const label =
+            field.closest(".field-group")
+              ?.querySelector("label");
+
+          if (label) {
+            label.htmlFor = field.id;
+          }
+        });
+
+      const removeButton =
+        card.querySelector(".remove-child-button");
+
+      removeButton.onclick = () => removeChild(card);
+      removeButton.setAttribute(
+        "aria-label",
+        `Remove Child ${childNumber}`
       );
     });
 
-    updateProgress();
+    childCount = cards.length;
+  }
 
-    window.scrollTo({
-      top: document.querySelector(".form-card").offsetTop - 20,
-      behavior: "smooth"
+  function updateRemoveButtons() {
+    const cards =
+      childrenContainer.querySelectorAll(".child-card");
+
+    cards.forEach((card) => {
+      const removeButton =
+        card.querySelector(".remove-child-button");
+
+      removeButton.hidden = cards.length === 1;
     });
   }
 
-  function updateProgress() {
-    const percent = Math.round(
-      (currentStep / steps.length) * 100
-    );
+  function handleSubmit(event) {
+    event.preventDefault();
 
-    progressText.textContent =
-      `Step ${currentStep} of ${steps.length}`;
+    if (isSubmitting) {
+      return;
+    }
 
-    progressPercent.textContent = `${percent}%`;
-    progressBar.style.width = `${percent}%`;
+    clearMessage();
+    clearAllInvalidStates();
+
+    if (!validateForm()) {
+      showMessage(
+        "Please complete all required fields and consent statements.",
+        "error"
+      );
+
+      scrollToFirstInvalid();
+      return;
+    }
+
+    const registrationData =
+      collectRegistrationData();
+
+    payloadInput.value =
+      JSON.stringify(registrationData);
+
+    setSubmitting(true);
+
+    /*
+      This submits the browser directly to Apps Script.
+      Apps Script saves the rows, sends the email, and then redirects
+      the browser to the GitHub confirmation page.
+    */
+    form.submit();
   }
 
-  function validateStep(stepNumber) {
-    const step = steps.find(
-      (item) => Number(item.dataset.step) === stepNumber
-    );
+  function validateForm() {
+    let valid = true;
 
-    if (!step) {
-      return false;
-    }
+    const regularFields =
+      Array.from(
+        form.querySelectorAll(
+          "input[required]:not([data-child-field]), " +
+          "select[required]:not([data-child-field]), " +
+          "textarea[required]:not([data-child-field])"
+        )
+      );
 
-    clearStepInvalidStates(step);
-
-    if (stepNumber === 1 && !getParticipantType()) {
-      document
-        .getElementById("participantTypeError")
-        .classList.remove("hidden");
-
-      return false;
-    }
-
-    const fields = Array.from(
-      step.querySelectorAll(
-        "input:not(:disabled), select:not(:disabled), textarea:not(:disabled)"
-      )
-    );
-
-    let isValid = true;
-
-    fields.forEach((field) => {
+    regularFields.forEach((field) => {
       if (!validateField(field)) {
-        isValid = false;
+        valid = false;
       }
     });
 
-    if (!isValid) {
-      showMessage(
-        "Please complete all required fields before continuing.",
-        "error"
-      );
+    const childCards =
+      childrenContainer.querySelectorAll(".child-card");
+
+    if (childCards.length < 1) {
+      valid = false;
     }
 
-    return isValid;
+    childCards.forEach((card) => {
+      const requiredChildFields =
+        card.querySelectorAll(
+          "[data-child-field][required]"
+        );
+
+      requiredChildFields.forEach((field) => {
+        if (!validateField(field)) {
+          valid = false;
+        }
+      });
+    });
+
+    return valid;
   }
 
   function validateField(field) {
-    if (!field.required) {
-      return true;
-    }
-
     let valid = true;
 
     if (field.type === "checkbox") {
       valid = field.checked;
-    } else if (field.type === "radio") {
-      valid = Boolean(
-        form.querySelector(
-          `input[name="${cssEscape(field.name)}"]:checked`
-        )
-      );
     } else {
-      valid = field.checkValidity() &&
+      valid =
+        field.checkValidity() &&
         String(field.value).trim() !== "";
     }
 
-    if (field.id === "studentAge" && field.value) {
+    if (
+      field.dataset.childField === "age" &&
+      field.value
+    ) {
       const age = Number(field.value);
-      valid = age >= 6 && age <= 17;
+
+      valid =
+        Number.isInteger(age) &&
+        age >= 5 &&
+        age <= 17;
     }
 
-    if (field.type === "email" && field.value) {
-      valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        field.value.trim()
-      );
+    if (
+      field.type === "email" &&
+      field.value
+    ) {
+      valid =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          .test(field.value.trim());
     }
 
     if (!valid) {
@@ -279,7 +296,9 @@ document.addEventListener("DOMContentLoaded", () => {
     field.setAttribute("aria-invalid", "true");
 
     if (field.type === "checkbox") {
-      field.closest(".checkbox-row")?.classList.add("invalid");
+      field
+        .closest(".checkbox-card")
+        ?.classList.add("invalid");
     }
   }
 
@@ -292,367 +311,216 @@ document.addEventListener("DOMContentLoaded", () => {
     field.removeAttribute("aria-invalid");
 
     if (field.type === "checkbox") {
-      field.closest(".checkbox-row")?.classList.remove("invalid");
+      field
+        .closest(".checkbox-card")
+        ?.classList.remove("invalid");
     }
   }
 
-  function clearStepInvalidStates(step) {
-    step.querySelectorAll(".invalid").forEach((element) => {
-      element.classList.remove("invalid");
-      element.removeAttribute("aria-invalid");
-    });
+  function clearAllInvalidStates() {
+    form
+      .querySelectorAll(".invalid")
+      .forEach((element) => {
+        element.classList.remove("invalid");
+        element.removeAttribute("aria-invalid");
+      });
   }
 
   function scrollToFirstInvalid() {
     const firstInvalid =
-      document.querySelector(
-        ".form-step.active .invalid, .form-step.active .field-error:not(.hidden)"
-      );
+      form.querySelector(".invalid");
 
     firstInvalid?.scrollIntoView({
       behavior: "smooth",
       block: "center"
     });
+
+    if (
+      firstInvalid &&
+      typeof firstInvalid.focus === "function"
+    ) {
+      setTimeout(() => {
+        firstInvalid.focus({
+          preventScroll: true
+        });
+      }, 350);
+    }
   }
 
-  function buildReviewSummary() {
-    const data = collectFormData();
-    const isAdult = data.participantType === "adult";
-
-    const participantRows = isAdult
-      ? [
-          ["Participant type", "Adult participant"],
-          [
-            "Participant name",
-            `${data.adultFirstName} ${data.adultLastName}`
-          ],
-          ["Email", data.adultEmail],
-          ["Phone", data.adultPhone],
-          ["Age range", data.adultAgeRange]
-        ]
-      : [
-          ["Participant type", "Student participant"],
-          [
-            "Student name",
-            `${data.studentFirstName} ${data.studentLastName}`
-          ],
-          ["Student age", data.studentAge],
-          ["Grade level", formatGrade(data.gradeLevel)],
-          ["School", data.schoolName || "Not provided"]
-        ];
-
-    const parentRows = isAdult
-      ? []
-      : [
-          [
-            "Parent/guardian",
-            `${data.parentFirstName} ${data.parentLastName}`
-          ],
-          ["Relationship", data.parentRelationship],
-          ["Parent email", data.parentEmail],
-          ["Parent phone", data.parentPhone]
-        ];
-
-    const sessionRows = [
-      ["Preferred date", formatDate(data.preferredDate)],
-      ["Preferred time", data.preferredTime],
-      [
-        "Accessibility needs",
-        data.accessibilityNotes || "None provided"
-      ]
-    ];
-
-    const permissionRows = [
-      [
-        "Participant Information Sheet",
-        data.pisRead ? "Confirmed" : "Not confirmed"
-      ],
-      [
-        "Photo permission",
-        data.photoPermission ? "Yes" : "No"
-      ],
-      [
-        "Video permission",
-        data.videoPermission ? "Yes" : "No"
-      ]
-    ];
-
-    reviewSummary.innerHTML = [
-      createReviewSection("Participant", participantRows),
-      parentRows.length
-        ? createReviewSection(
-            "Parent or legal guardian",
-            parentRows
-          )
-        : "",
-      createReviewSection("Session", sessionRows),
-      createReviewSection("Permissions", permissionRows)
-    ].join("");
-  }
-
-  function createReviewSection(title, rows) {
-    const items = rows.map(([label, value]) => `
-      <div class="review-item">
-        <span>${escapeHtml(label)}</span>
-        <strong>${escapeHtml(String(value || "—"))}</strong>
-      </div>
-    `).join("");
-
-    return `
-      <section class="review-section">
-        <h3>${escapeHtml(title)}</h3>
-        <div class="review-grid">${items}</div>
-      </section>
-    `;
-  }
-
-  function collectFormData() {
-    const formData = new FormData(form);
-
-    const checkboxValue = (name) =>
-      formData.get(name) === "Yes";
-
+  function collectRegistrationData() {
     return {
-      submissionToken: getOrCreateSubmissionToken(),
-      studyId: window.APP_CONFIG?.studyId || "EGP-2026-001",
-      formVersion: window.APP_CONFIG?.formVersion || "1.0",
+      submissionToken:
+        getOrCreateSubmissionToken(),
 
-      participantType: clean(formData.get("participantType")),
+      parent: {
+        firstName:
+          cleanValue("parentFirstName"),
 
-      adultFirstName: clean(formData.get("adultFirstName")),
-      adultLastName: clean(formData.get("adultLastName")),
-      adultEmail: clean(formData.get("adultEmail")),
-      adultPhone: clean(formData.get("adultPhone")),
-      adultAgeRange: clean(formData.get("adultAgeRange")),
+        lastName:
+          cleanValue("parentLastName"),
 
-      parentFirstName: clean(formData.get("parentFirstName")),
-      parentLastName: clean(formData.get("parentLastName")),
-      parentRelationship: clean(
-        formData.get("parentRelationship")
-      ),
-      parentEmail: clean(formData.get("parentEmail")),
-      parentPhone: clean(formData.get("parentPhone")),
+        email:
+          cleanValue("parentEmail").toLowerCase(),
 
-      studentFirstName: clean(
-        formData.get("studentFirstName")
-      ),
-      studentLastName: clean(
-        formData.get("studentLastName")
-      ),
-      studentAge: clean(formData.get("studentAge")),
-      gradeLevel: clean(formData.get("gradeLevel")),
-      schoolName: clean(formData.get("schoolName")),
+        phone:
+          cleanValue("parentPhone"),
 
-      preferredDate: clean(formData.get("preferredDate")),
-      preferredTime: clean(formData.get("preferredTime")),
-      accessibilityNotes: clean(
-        formData.get("accessibilityNotes")
-      ),
+        relationship:
+          cleanValue("parentRelationship"),
 
-      pisRead: checkboxValue("pisRead"),
+        city:
+          cleanValue("city")
+      },
 
-      adultVoluntaryConsent: checkboxValue(
-        "adultVoluntaryConsent"
-      ),
-      adultWithdrawalConsent: checkboxValue(
-        "adultWithdrawalConsent"
-      ),
-      adultParticipationConsent: checkboxValue(
-        "adultParticipationConsent"
-      ),
-      adultAccuracyConfirmation: checkboxValue(
-        "adultAccuracyConfirmation"
-      ),
+      children:
+        collectChildren(),
 
-      guardianAuthority: checkboxValue("guardianAuthority"),
-      parentUnderstandsStudy: checkboxValue(
-        "parentUnderstandsStudy"
-      ),
-      parentVoluntaryConsent: checkboxValue(
-        "parentVoluntaryConsent"
-      ),
-      parentParticipationConsent: checkboxValue(
-        "parentParticipationConsent"
-      ),
-      studentAssent: checkboxValue("studentAssent"),
+      consent: {
+        pisRead:
+          getChecked("pisRead"),
 
-      photoPermission: checkboxValue("photoPermission"),
-      videoPermission: checkboxValue("videoPermission"),
-      finalConfirmation: checkboxValue("finalConfirmation"),
+        guardianAuthority:
+          getChecked("guardianAuthority"),
 
-      website: clean(formData.get("website")),
+        understandsActivities:
+          getChecked("understandsActivities"),
 
-      clientSubmittedAt: new Date().toISOString(),
-      sourcePage: window.location.href,
-      userAgent: navigator.userAgent
+        voluntaryParticipation:
+          getChecked("voluntaryParticipation"),
+
+        parentPermission:
+          getChecked("parentPermission"),
+
+        studentAssentAcknowledgment:
+          getChecked("studentAssentAcknowledgment"),
+
+        dataUsePermission:
+          getChecked("dataUsePermission"),
+
+        whatsappPermission:
+          getChecked("whatsappPermission"),
+
+        photoPermission:
+          getChecked("photoPermission"),
+
+        videoPermission:
+          getChecked("videoPermission"),
+
+        accuracyConfirmation:
+          getChecked("accuracyConfirmation")
+      },
+
+      website:
+        cleanValue("website"),
+
+      submittedAt:
+        new Date().toISOString(),
+
+      sourcePage:
+        window.location.href
     };
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  function collectChildren() {
+    return Array.from(
+      childrenContainer.querySelectorAll(".child-card")
+    ).map((card) => {
+      const fieldValue = (name) =>
+        String(
+          card.querySelector(
+            `[data-child-field="${name}"]`
+          )?.value ?? ""
+        ).trim();
 
-    if (isSubmitting) {
-      return;
-    }
+      return {
+        firstName:
+          fieldValue("firstName"),
 
-    clearMessage();
+        lastName:
+          fieldValue("lastName"),
 
-    if (!validateStep(5)) {
-      scrollToFirstInvalid();
-      return;
-    }
+        age:
+          fieldValue("age"),
 
-    const endpoint = window.APP_CONFIG?.appsScriptUrl;
+        gradeLevel:
+          fieldValue("gradeLevel"),
 
-    if (
-      !endpoint ||
-      endpoint.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT")
-    ) {
-      showMessage(
-        "The Google Sheets connection has not been configured yet. Add the deployed Apps Script URL to config.js.",
-        "error"
-      );
+        schoolName:
+          fieldValue("schoolName"),
 
-      return;
-    }
-
-    const data = collectFormData();
-
-    if (!validateCompleteSubmission(data)) {
-      showMessage(
-        "Some required consent or participant information is missing. Please return to the earlier steps and review the form.",
-        "error"
-      );
-
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      /*
-        URLSearchParams creates a simple form-encoded POST request.
-        Do not add custom request headers here, because that may trigger
-        an unnecessary browser preflight request.
-      */
-      const response = await fetch(endpoint, {
-        method: "POST",
-        body: new URLSearchParams({
-          payload: JSON.stringify(data)
-        }),
-        redirect: "follow"
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Submission failed with status ${response.status}.`
-        );
-      }
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(
-          result.message || "The registration could not be saved."
-        );
-      }
-
-      sessionStorage.setItem(
-        "egpRegistrationResult",
-        JSON.stringify({
-          participantId: result.participantId,
-          duplicate: Boolean(result.duplicate)
-        })
-      );
-
-      localStorage.removeItem("egpSubmissionToken");
-
-      const destination =
-        window.APP_CONFIG?.successPageUrl ||
-        "pages/success.html";
-
-      window.location.assign(
-        `${destination}?participantId=${encodeURIComponent(
-          result.participantId
-        )}`
-      );
-    } catch (error) {
-      console.error(error);
-
-      showMessage(
-        "We could not confirm that your registration was saved. Please check your internet connection and try once more. Do not repeatedly click submit.",
-        "error"
-      );
-    } finally {
-      setSubmitting(false);
-    }
+        accommodations:
+          fieldValue("accommodations")
+      };
+    });
   }
 
-  function validateCompleteSubmission(data) {
-    if (
-      !data.participantType ||
-      !data.preferredDate ||
-      !data.preferredTime ||
-      !data.pisRead ||
-      !data.finalConfirmation
-    ) {
-      return false;
-    }
+  function cleanValue(id) {
+    return String(
+      document.getElementById(id)?.value ?? ""
+    ).trim();
+  }
 
-    if (data.participantType === "adult") {
-      return Boolean(
-        data.adultFirstName &&
-        data.adultLastName &&
-        data.adultEmail &&
-        data.adultPhone &&
-        data.adultAgeRange &&
-        data.adultVoluntaryConsent &&
-        data.adultWithdrawalConsent &&
-        data.adultParticipationConsent &&
-        data.adultAccuracyConfirmation
+  function getChecked(id) {
+    return Boolean(
+      document.getElementById(id)?.checked
+    );
+  }
+
+  function getOrCreateSubmissionToken() {
+    let token =
+      localStorage.getItem(
+        "egpFamilySubmissionToken"
+      );
+
+    if (!token) {
+      token =
+        window.crypto?.randomUUID?.() ||
+        `${Date.now()}-${Math.random()
+          .toString(16)
+          .slice(2)}`;
+
+      localStorage.setItem(
+        "egpFamilySubmissionToken",
+        token
       );
     }
 
-    if (data.participantType === "student") {
-      const age = Number(data.studentAge);
+    return token;
+  }
 
-      return Boolean(
-        data.parentFirstName &&
-        data.parentLastName &&
-        data.parentRelationship &&
-        data.parentEmail &&
-        data.parentPhone &&
-        data.studentFirstName &&
-        data.studentLastName &&
-        age >= 6 &&
-        age <= 17 &&
-        data.gradeLevel &&
-        data.guardianAuthority &&
-        data.parentUnderstandsStudy &&
-        data.parentVoluntaryConsent &&
-        data.parentParticipationConsent &&
-        data.studentAssent
-      );
-    }
-
-    return false;
+  function createUniqueKey() {
+    return (
+      window.crypto?.randomUUID?.() ||
+      `${Date.now()}-${Math.random()
+        .toString(16)
+        .slice(2)}`
+    );
   }
 
   function setSubmitting(submitting) {
     isSubmitting = submitting;
     submitButton.disabled = submitting;
 
-    submitButtonText.textContent = submitting
-      ? "Submitting…"
-      : "Submit registration";
+    submitButtonText.textContent =
+      submitting
+        ? "Submitting registration…"
+        : "Submit registration";
 
-    submitSpinner.classList.toggle("hidden", !submitting);
+    submitSpinner.classList.toggle(
+      "hidden",
+      !submitting
+    );
   }
 
   function showMessage(message, type) {
     formMessage.textContent = message;
+
     formMessage.className =
-      `message message-${type === "success" ? "success" : "error"}`;
+      `message message-${
+        type === "success"
+          ? "success"
+          : "error"
+      }`;
 
     formMessage.scrollIntoView({
       behavior: "smooth",
@@ -662,80 +530,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function clearMessage() {
     formMessage.textContent = "";
-    formMessage.className = "message hidden";
-  }
-
-  function getOrCreateSubmissionToken() {
-    let token = localStorage.getItem("egpSubmissionToken");
-
-    if (!token) {
-      token = crypto.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random()
-            .toString(16)
-            .slice(2)}`;
-
-      localStorage.setItem("egpSubmissionToken", token);
-    }
-
-    return token;
-  }
-
-  function setMinimumDate() {
-    const dateInput = document.getElementById("preferredDate");
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-
-    dateInput.min = `${year}-${month}-${day}`;
-  }
-
-  function formatDate(value) {
-    if (!value) {
-      return "Not selected";
-    }
-
-    const date = new Date(`${value}T12:00:00`);
-
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    }).format(date);
-  }
-
-  function formatGrade(value) {
-    if (!value) {
-      return "Not provided";
-    }
-
-    if (value === "Other") {
-      return "Other";
-    }
-
-    return `Grade ${value}`;
-  }
-
-  function clean(value) {
-    return String(value ?? "").trim();
-  }
-
-  function escapeHtml(value) {
-    return value
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function cssEscape(value) {
-    if (window.CSS?.escape) {
-      return CSS.escape(value);
-    }
-
-    return value.replace(/["\\]/g, "\\$&");
+    formMessage.className =
+      "message hidden";
   }
 });
