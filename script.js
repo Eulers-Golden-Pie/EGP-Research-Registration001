@@ -2,6 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("registrationForm");
+
   const childrenContainer =
     document.getElementById("childrenContainer");
 
@@ -10,9 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const addChildButton =
     document.getElementById("addChildButton");
-
-  const payloadInput =
-    document.getElementById("payload");
 
   const formMessage =
     document.getElementById("formMessage");
@@ -26,10 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitSpinner =
     document.getElementById("submitSpinner");
 
-  let childCount = 0;
   let isSubmitting = false;
 
-  configureFormEndpoint();
+  configureBackend();
   addChild();
 
   addChildButton.addEventListener("click", addChild);
@@ -44,38 +41,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", handleSubmit);
 
-  function configureFormEndpoint() {
-    const endpoint = window.APP_CONFIG?.appsScriptUrl;
+  /**
+   * Confirms that the Apps Script endpoint is configured.
+   */
+  function configureBackend() {
+    const endpoint =
+      window.APP_CONFIG?.appsScriptUrl;
 
-    if (
-      !endpoint ||
-      !endpoint.startsWith("https://script.google.com/macros/s/") ||
-      !endpoint.endsWith("/exec")
-    ) {
+    const validEndpoint =
+      endpoint &&
+      endpoint.startsWith(
+        "https://script.google.com/macros/s/"
+      ) &&
+      endpoint.endsWith("/exec");
+
+    if (!validEndpoint) {
       showMessage(
         "The registration backend has not been configured correctly.",
         "error"
       );
 
       submitButton.disabled = true;
-      return;
     }
-
-    /*
-      Traditional browser form submission avoids the cross-origin
-      response-reading problem that can occur with fetch() and Apps Script.
-    */
-    form.action = endpoint;
   }
 
+  /**
+   * Adds a new child registration card.
+   */
   function addChild() {
     const fragment =
       childTemplate.content.cloneNode(true);
 
     const childCard =
       fragment.querySelector(".child-card");
-
-    childCount += 1;
 
     childCard.dataset.childKey =
       createUniqueKey();
@@ -85,21 +83,29 @@ document.addEventListener("DOMContentLoaded", () => {
     renumberChildren();
     updateRemoveButtons();
 
-    const newCard =
-      childrenContainer.lastElementChild;
+    const cards =
+      childrenContainer.querySelectorAll(".child-card");
 
-    if (childCount > 1) {
-      newCard.scrollIntoView({
+    if (cards.length > 1) {
+      const newestCard =
+        cards[cards.length - 1];
+
+      newestCard.scrollIntoView({
         behavior: "smooth",
         block: "center"
       });
 
-      newCard
-        .querySelector('[data-child-field="firstName"]')
+      newestCard
+        .querySelector(
+          '[data-child-field="firstName"]'
+        )
         ?.focus();
     }
   }
 
+  /**
+   * Removes one child card.
+   */
   function removeChild(childCard) {
     const cards =
       childrenContainer.querySelectorAll(".child-card");
@@ -114,14 +120,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     childCard.remove();
-    childCount = childrenContainer
-      .querySelectorAll(".child-card").length;
 
     renumberChildren();
     updateRemoveButtons();
     clearMessage();
   }
 
+  /**
+   * Updates Child 1, Child 2, etc.
+   */
   function renumberChildren() {
     const cards =
       childrenContainer.querySelectorAll(".child-card");
@@ -129,7 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
     cards.forEach((card, index) => {
       const childNumber = index + 1;
 
-      card.querySelector(".child-title").textContent =
+      const title =
+        card.querySelector(".child-title");
+
+      title.textContent =
         `Child ${childNumber}`;
 
       card
@@ -142,7 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
             `child-${childNumber}-${fieldName}`;
 
           const label =
-            field.closest(".field-group")
+            field
+              .closest(".field-group")
               ?.querySelector("label");
 
           if (label) {
@@ -151,31 +162,42 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
       const removeButton =
-        card.querySelector(".remove-child-button");
+        card.querySelector(
+          ".remove-child-button"
+        );
 
-      removeButton.onclick = () => removeChild(card);
+      removeButton.onclick =
+        () => removeChild(card);
+
       removeButton.setAttribute(
         "aria-label",
         `Remove Child ${childNumber}`
       );
     });
-
-    childCount = cards.length;
   }
 
+  /**
+   * Hides the remove button when there is only one child.
+   */
   function updateRemoveButtons() {
     const cards =
       childrenContainer.querySelectorAll(".child-card");
 
     cards.forEach((card) => {
       const removeButton =
-        card.querySelector(".remove-child-button");
+        card.querySelector(
+          ".remove-child-button"
+        );
 
-      removeButton.hidden = cards.length === 1;
+      removeButton.hidden =
+        cards.length === 1;
     });
   }
 
-  function handleSubmit(event) {
+  /**
+   * Handles final registration submission.
+   */
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (isSubmitting) {
@@ -195,22 +217,74 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const endpoint =
+      window.APP_CONFIG?.appsScriptUrl;
+
+    if (
+      !endpoint ||
+      !endpoint.startsWith(
+        "https://script.google.com/macros/s/"
+      ) ||
+      !endpoint.endsWith("/exec")
+    ) {
+      showMessage(
+        "The registration backend has not been configured correctly.",
+        "error"
+      );
+
+      return;
+    }
+
     const registrationData =
       collectRegistrationData();
 
-    payloadInput.value =
-      JSON.stringify(registrationData);
-
     setSubmitting(true);
 
-    /*
-      This submits the browser directly to Apps Script.
-      Apps Script saves the rows, sends the email, and then redirects
-      the browser to the GitHub confirmation page.
-    */
-    form.submit();
+    try {
+      const requestBody =
+        new URLSearchParams({
+          payload:
+            JSON.stringify(registrationData)
+        });
+
+      /*
+        no-cors allows GitHub Pages to send the request to Apps Script
+        without the browser blocking the response redirect.
+
+        The browser cannot inspect Apps Script's response, but Apps Script
+        can still save the registration and send the confirmation email.
+      */
+      await fetch(endpoint, {
+        method: "POST",
+        mode: "no-cors",
+        body: requestBody
+      });
+
+      localStorage.removeItem(
+        "egpFamilySubmissionToken"
+      );
+
+      window.location.assign(
+        "pages/success.html"
+      );
+    } catch (error) {
+      console.error(
+        "Registration submission error:",
+        error
+      );
+
+      showMessage(
+        "The registration could not be submitted. Please check your internet connection and try again.",
+        "error"
+      );
+
+      setSubmitting(false);
+    }
   }
 
+  /**
+   * Validates all required fields and checkboxes.
+   */
   function validateForm() {
     let valid = true;
 
@@ -230,7 +304,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const childCards =
-      childrenContainer.querySelectorAll(".child-card");
+      childrenContainer.querySelectorAll(
+        ".child-card"
+      );
 
     if (childCards.length < 1) {
       valid = false;
@@ -252,6 +328,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return valid;
   }
 
+  /**
+   * Validates one field.
+   */
   function validateField(field) {
     let valid = true;
 
@@ -267,7 +346,8 @@ document.addEventListener("DOMContentLoaded", () => {
       field.dataset.childField === "age" &&
       field.value
     ) {
-      const age = Number(field.value);
+      const age =
+        Number(field.value);
 
       valid =
         Number.isInteger(age) &&
@@ -291,9 +371,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return valid;
   }
 
+  /**
+   * Marks a field as invalid.
+   */
   function setInvalidState(field) {
     field.classList.add("invalid");
-    field.setAttribute("aria-invalid", "true");
+
+    field.setAttribute(
+      "aria-invalid",
+      "true"
+    );
 
     if (field.type === "checkbox") {
       field
@@ -302,13 +389,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Removes invalid styling.
+   */
   function clearInvalidState(field) {
     if (!(field instanceof HTMLElement)) {
       return;
     }
 
     field.classList.remove("invalid");
-    field.removeAttribute("aria-invalid");
+
+    field.removeAttribute(
+      "aria-invalid"
+    );
 
     if (field.type === "checkbox") {
       field
@@ -317,15 +410,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Clears every invalid marker.
+   */
   function clearAllInvalidStates() {
     form
       .querySelectorAll(".invalid")
       .forEach((element) => {
         element.classList.remove("invalid");
-        element.removeAttribute("aria-invalid");
+
+        element.removeAttribute(
+          "aria-invalid"
+        );
       });
   }
 
+  /**
+   * Scrolls to the first incomplete field.
+   */
   function scrollToFirstInvalid() {
     const firstInvalid =
       form.querySelector(".invalid");
@@ -337,7 +439,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (
       firstInvalid &&
-      typeof firstInvalid.focus === "function"
+      typeof firstInvalid.focus ===
+        "function"
     ) {
       setTimeout(() => {
         firstInvalid.focus({
@@ -347,6 +450,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Collects the complete family registration.
+   */
   function collectRegistrationData() {
     return {
       submissionToken:
@@ -360,13 +466,17 @@ document.addEventListener("DOMContentLoaded", () => {
           cleanValue("parentLastName"),
 
         email:
-          cleanValue("parentEmail").toLowerCase(),
+          cleanValue(
+            "parentEmail"
+          ).toLowerCase(),
 
         phone:
           cleanValue("parentPhone"),
 
         relationship:
-          cleanValue("parentRelationship"),
+          cleanValue(
+            "parentRelationship"
+          ),
 
         city:
           cleanValue("city")
@@ -380,34 +490,54 @@ document.addEventListener("DOMContentLoaded", () => {
           getChecked("pisRead"),
 
         guardianAuthority:
-          getChecked("guardianAuthority"),
+          getChecked(
+            "guardianAuthority"
+          ),
 
         understandsActivities:
-          getChecked("understandsActivities"),
+          getChecked(
+            "understandsActivities"
+          ),
 
         voluntaryParticipation:
-          getChecked("voluntaryParticipation"),
+          getChecked(
+            "voluntaryParticipation"
+          ),
 
         parentPermission:
-          getChecked("parentPermission"),
+          getChecked(
+            "parentPermission"
+          ),
 
         studentAssentAcknowledgment:
-          getChecked("studentAssentAcknowledgment"),
+          getChecked(
+            "studentAssentAcknowledgment"
+          ),
 
         dataUsePermission:
-          getChecked("dataUsePermission"),
+          getChecked(
+            "dataUsePermission"
+          ),
 
         whatsappPermission:
-          getChecked("whatsappPermission"),
+          getChecked(
+            "whatsappPermission"
+          ),
 
         photoPermission:
-          getChecked("photoPermission"),
+          getChecked(
+            "photoPermission"
+          ),
 
         videoPermission:
-          getChecked("videoPermission"),
+          getChecked(
+            "videoPermission"
+          ),
 
         accuracyConfirmation:
-          getChecked("accuracyConfirmation")
+          getChecked(
+            "accuracyConfirmation"
+          )
       },
 
       website:
@@ -421,16 +551,22 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  /**
+   * Collects each child card into an array.
+   */
   function collectChildren() {
     return Array.from(
-      childrenContainer.querySelectorAll(".child-card")
+      childrenContainer.querySelectorAll(
+        ".child-card"
+      )
     ).map((card) => {
-      const fieldValue = (name) =>
-        String(
-          card.querySelector(
-            `[data-child-field="${name}"]`
-          )?.value ?? ""
-        ).trim();
+      const fieldValue =
+        (name) =>
+          String(
+            card.querySelector(
+              `[data-child-field="${name}"]`
+            )?.value ?? ""
+          ).trim();
 
       return {
         firstName:
@@ -454,18 +590,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * Reads and trims a normal form input.
+   */
   function cleanValue(id) {
     return String(
-      document.getElementById(id)?.value ?? ""
+      document.getElementById(id)?.value ??
+        ""
     ).trim();
   }
 
+  /**
+   * Reads a checkbox.
+   */
   function getChecked(id) {
     return Boolean(
       document.getElementById(id)?.checked
     );
   }
 
+  /**
+   * Generates a duplicate-protection token.
+   */
   function getOrCreateSubmissionToken() {
     let token =
       localStorage.getItem(
@@ -488,6 +634,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return token;
   }
 
+  /**
+   * Generates an internal key for child cards.
+   */
   function createUniqueKey() {
     return (
       window.crypto?.randomUUID?.() ||
@@ -497,9 +646,14 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
+  /**
+   * Controls loading state.
+   */
   function setSubmitting(submitting) {
     isSubmitting = submitting;
-    submitButton.disabled = submitting;
+
+    submitButton.disabled =
+      submitting;
 
     submitButtonText.textContent =
       submitting
@@ -512,6 +666,9 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
+  /**
+   * Displays an error or success message.
+   */
   function showMessage(message, type) {
     formMessage.textContent = message;
 
@@ -528,8 +685,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * Clears the message box.
+   */
   function clearMessage() {
     formMessage.textContent = "";
+
     formMessage.className =
       "message hidden";
   }
