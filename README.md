@@ -1,49 +1,65 @@
-# EGP Research Registration Portal
+# EGP Participant Registration Portal
 
-Participant registration portal for the EGP Educational Intervention
-Research Study.
+A two-page registration and parental-consent portal for the Euler's
+Golden Pie educational intervention.
 
-## Study
+## Participant group
 
-- Study ID: EGP-2026-001
-- Form version: 1.0
-- Participant groups:
-  - Adults aged 18+
-  - Students under 18 with parent/legal guardian permission
+This version is for participants under 18.
 
-## Technology
+A parent or legal guardian must complete the form.
 
-- GitHub Pages
-- HTML
-- CSS
-- Vanilla JavaScript
-- Google Apps Script
-- Google Sheets
+## Website flow
 
-## Setup
+1. Parent reads the intervention information.
+2. Parent enters their contact details.
+3. Parent adds one or more participating children.
+4. Parent reads the Participant Information Sheet.
+5. Parent provides required consent.
+6. Parent provides WhatsApp communication permission.
+7. Parent may optionally provide photo and video permission.
+8. Registration is submitted to Google Apps Script.
+9. Apps Script saves one Google Sheet row per child.
+10. Apps Script sends one family confirmation email.
+11. Apps Script redirects the browser to the confirmation page.
 
-1. Add the Participant Information Sheet PDF to:
+## Files
 
-   `docs/EGP_Participant_Information_Sheet_v1.pdf`
+- `index.html` — registration and consent form
+- `styles.css` — dark theme and responsive layout
+- `script.js` — child management, validation, and submission
+- `config.js` — Google Apps Script deployment URL
+- `pages/success.html` — confirmation page
+- `docs/participant-information-sheet.pdf` — current PIS
+- `Code.gs` — Google Apps Script backend
 
-2. Create a Google Sheet.
+## Important privacy rule
 
-3. Create a Google Apps Script project connected to the Sheet.
+Never upload any of the following to GitHub:
 
-4. Paste the backend code into `Code.gs`.
+- Google Sheet exports
+- Participant names or email addresses
+- Parent phone numbers
+- Consent records
+- Registration data
+- Passwords
+- Google credentials
+- Private keys
 
-5. Deploy the Apps Script project as a web app.
+The Apps Script `/exec` URL may appear in `config.js`. It is a public
+submission endpoint, not a secret credential. Server-side validation
+must remain enabled.
 
-6. Copy the `/exec` deployment URL.
+## Deployment
 
-7. Paste that URL into `config.js`.
+After changing `Code.gs`, update the Apps Script web-app deployment:
 
-8. Publish the repository through GitHub Pages.
-
-## Important
-
-Do not commit private credentials, passwords, service-account files,
-participant exports, or other confidential records to this repository.
-
-The Apps Script web-app URL is a submission endpoint, not a private
-credential. All real validation must still happen on the server.
+1. Open Apps Script.
+2. Select **Deploy → Manage deployments**.
+3. Edit the active deployment.
+4. Create or select a new version.
+5. Confirm:
+   - Execute as: Me
+   - Access: Anyone
+6. Deploy.
+7. Confirm that the `/exec` URL still matches `config.js`.
