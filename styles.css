@@ -904,3 +904,56 @@ textarea.invalid {
     justify-self: start;
   }
 }
+.school-notice {
+  margin: 30px 0;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+
+  padding: 22px;
+
+  border: 2px solid rgba(255, 193, 7, 0.35);
+  border-left: 6px solid #ffc107;
+
+  border-radius: var(--radius-medium);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 193, 7, 0.12),
+      rgba(255, 193, 7, 0.03)
+    );
+}
+
+.school-notice-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.school-notice-content h4 {
+  margin: 0 0 10px;
+
+  color: #ffd54f;
+  font-size: 1.15rem;
+}
+
+.school-notice-content p {
+  margin: 0 0 12px;
+
+  color: var(--text-muted);
+}
+
+.school-notice-content p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .school-notice {
+    flex-direction: column;
+  }
+
+  .school-notice-icon {
+    font-size: 1.8rem;
+  }
+}
