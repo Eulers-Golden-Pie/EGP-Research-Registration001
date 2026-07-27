@@ -778,3 +778,129 @@ textarea.invalid {
     align-self: flex-start;
   }
 }
+.program-summary {
+  margin-top: 28px;
+  padding: 20px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+
+  background: var(--surface-soft);
+}
+
+.program-summary h4,
+.program-timeline h4 {
+  margin: 0 0 16px;
+
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.program-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.program-summary-item {
+  padding: 15px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+
+  background: #0c121c;
+}
+
+.program-summary-item span,
+.program-summary-item strong {
+  display: block;
+}
+
+.program-summary-item span {
+  margin-bottom: 4px;
+
+  color: var(--text-faint);
+
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.program-summary-item strong {
+  color: var(--text);
+}
+
+.program-timeline {
+  margin-top: 30px;
+}
+
+.timeline-item {
+  position: relative;
+
+  margin-bottom: 15px;
+  padding: 19px;
+
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 18px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(110, 168, 255, 0.035),
+      transparent 42%
+    ),
+    var(--surface-soft);
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-day {
+  align-self: start;
+
+  padding: 8px 11px;
+
+  border: 1px solid rgba(110, 168, 255, 0.35);
+  border-radius: 999px;
+
+  color: var(--primary-bright);
+  background: var(--primary-soft);
+
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.timeline-content h5 {
+  margin: 0 0 5px;
+
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.timeline-content p {
+  margin: 0;
+
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .program-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-item {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .timeline-day {
+    justify-self: start;
+  }
+}
