@@ -1,6 +1,4 @@
 window.APP_CONFIG = Object.freeze({
   appsScriptUrl:
-    "YOUR_GOOGLE_APPS_SCRIPT_EXEC_URL",
-
-  successPageUrl: "pages/success.html"
+    "https://script.google.com/macros/s/PASTE_YOUR_DEPLOYMENT_ID/exec"
 });
