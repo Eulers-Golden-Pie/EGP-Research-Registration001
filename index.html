@@ -20,6 +20,8 @@
 </head>
 
 <body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
   <header class="site-header">
     <div class="header-inner">
       <div class="brand">
@@ -71,7 +73,7 @@
         <p>
           The program will take place over approximately
           <strong>three calendar weeks</strong> and will include
-          <strong>13 scheduled sessions</strong>.
+          <strong>12 scheduled sessions</strong>.
         </p>
       
         <p>
@@ -100,7 +102,7 @@
       
             <div class="program-summary-item">
               <span>Total sessions</span>
-              <strong>13 scheduled sessions</strong>
+              <strong>12 scheduled sessions</strong>
             </div>
       
             <div class="program-summary-item">
@@ -114,34 +116,28 @@
             </div>
           </div>
         </div>
-        <div class="school-notice">
-  <div class="school-notice-icon">📚</div>
+        <div class="school-notice premium-notice">
+          <div class="school-notice-icon" aria-hidden="true">✦</div>
+          <div class="school-notice-content">
+            <h4>School Schedule Notice</h4>
+            <p>
+              The intervention begins during summer break. After school starts,
+              the remaining sessions will move to <strong>after-school timings</strong>.
+              Updated timings will be shared with registered parents and participants
+              through the official WhatsApp group before the schedule changes.
+            </p>
+          </div>
+        </div>
 
-  <div class="school-notice-content">
-    <h4>School Schedule Notice</h4>
+        <div class="attendance-notice premium-notice">
+          <div class="school-notice-icon" aria-hidden="true">★</div>
+          <div class="school-notice-content">
+            <h4>Daily Participation & Prizes</h4>
+            <p><strong>Consistent daily participation is essential.</strong> Families who register are expected to ensure that participants attend every scheduled session whenever reasonably possible.</p>
+            <p>Prizes will be awarded to participants with <strong>100% attendance</strong>, as well as to the <strong>top winners and runners-up</strong>. Complete award and evaluation criteria will be explained during orientation.</p>
+          </div>
+        </div>
 
-    <p>
-      The intervention begins during the summer break. As local schools
-      resume during the final week of the program, the remaining
-      intervention sessions will transition to
-      <strong>after-school timings</strong>.
-    </p>
-
-    <p>
-      The <strong>Day 11</strong> and <strong>Day 12</strong> intervention
-      sessions, along with the <strong>Day 13 Post-Assessment</strong>,
-      will be conducted after school to accommodate participants'
-      academic schedules.
-    </p>
-
-    <p>
-      Final session timings will be communicated to all registered
-      parents through the official WhatsApp group before this schedule
-      transition takes place.
-    </p>
-  </div>
-</div>
-      
         <div class="program-timeline">
           <h4>Program Schedule</h4>
       
@@ -176,7 +172,7 @@
           </article>
       
           <article class="timeline-item">
-            <div class="timeline-day">Days 3–12</div>
+            <div class="timeline-day">Days 3–11</div>
       
             <div class="timeline-content">
               <h5>Learning and Memory Intervention</h5>
@@ -190,7 +186,7 @@
           </article>
       
           <article class="timeline-item">
-            <div class="timeline-day">Day 13</div>
+            <div class="timeline-day">Day 12</div>
       
             <div class="timeline-content">
               <h5>Post-Assessment</h5>
@@ -205,6 +201,18 @@
           </article>
         </div>
       </div>
+
+      <section id="registrationStatus" class="registration-status" aria-live="polite">
+        <div>
+          <p class="eyebrow">Registration availability</p>
+          <h3 id="statusTitle">Checking availability…</h3>
+          <p id="statusText">Registration closes August 4, 2026 at 11:59 PM CT or when 12 participant spots are filled.</p>
+        </div>
+        <div class="capacity-meter" aria-hidden="true">
+          <span id="capacityCount">— / 12</span>
+          <div class="capacity-track"><span id="capacityBar"></span></div>
+        </div>
+      </section>
 
       <div class="fact-grid">
         <article class="fact-card">
@@ -241,13 +249,20 @@
       </div>
     </noscript>
 
-    <section class="form-card">
+    <section class="form-card" id="registrationPanel">
       <div
         id="formMessage"
         class="message hidden"
         role="alert"
         aria-live="polite"
       ></div>
+
+      <div id="closedState" class="closed-state hidden" role="status">
+        <div class="closed-mark" aria-hidden="true">EGP</div>
+        <p class="eyebrow">Registration status</p>
+        <h2 id="closedTitle">Registration unavailable</h2>
+        <p id="closedMessage">This registration form is not currently accepting submissions.</p>
+      </div>
 
       <form
         id="registrationForm"
@@ -590,10 +605,7 @@
               >
 
               <span>
-                I permit de-identified results from the participating
-                child or children to be analyzed and included in research
-                papers, educational presentations, competitions, or
-                publications.
+                I give permission for my child(ren)’s data to be used in research papers and publications without including any personally identifiable information.
               </span>
             </label>
           </div>
